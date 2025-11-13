@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Nature - Making Trails Accessible</title>
+  
+  <link rel="stylesheet" href="./src/css/ui-polish.css">
+  <link rel="stylesheet" href="./src/css/base.css">
+  <link rel="stylesheet" href="./src/css/layout.css">
+  <link rel="stylesheet" href="./src/css/components.css">
+  <link rel="stylesheet" href="./src/css/accessibility.css">
+  <link rel="stylesheet" href="./src/css/themes.css">
+  <link rel="stylesheet" href="./src/css/auth.css">
+  
+  <style>
+    body {
+      padding-top: 60px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .hero-subtitle {
+      font-size: 20px;
+      opacity: 0.9;
+      margin-bottom: 32px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .features {
+      padding: 60px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      margin-top: 40px;
+    }
+
+    .feature-card {
+      text-align: center;
+      padding: 32px 24px;
+    }
+
+    .feature-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .feature-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-color);
+    }
+
+    .feature-description {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 767px) {
+      .hero-title {
+        font-size: 36px;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+      }
+
+      .features {
+        padding: 40px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="top-nav" role="navigation">
+    <a href="index.html" class="nav-brand">
+      <span class="nav-brand-icon">🌲</span>
+      <span>Access Nature</span>
+    </a>
+    
+    <button class="menu-toggle" 
+            aria-label="Toggle navigation menu"
+            aria-expanded="false"
+            id="menuToggle">
+      <span class="hamburger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+    
+    <div class="nav-menu" id="navMenu">
+      <a href="index.html" class="nav-link active">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+      </a>
+      <a href="tracker.html" class="nav-link">
+        <span class="nav-icon">🗺️</span>
+        <span class="nav-label">Track Trail</span>
+      </a>
+      <a href="routes.html" class="nav-link">
+        <span class="nav-icon">📍</span>
+        <span class="nav-label">My Routes</span>
+      </a>
+      <a href="accessibility.html" class="nav-link">
+        <span class="nav-icon">♿</span>
+        <span class="nav-label">Survey</span>
+      </a>
+      <a href="profile.html" class="nav-link">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1 class="hero-title">🌲 Access Nature</h1>
+    <p class="hero-subtitle">
+      Track, share, and discover accessible trails. Help make nature accessible for everyone.
+    </p>
+    <div class="hero-buttons">
+      <a href="tracker.html" class="btn btn-large" style="background: white; color: var(--primary-color);">
+        🗺️ Start Tracking
+      </a>
+      <a href="accessibility.html" class="btn btn-large btn-outline" style="border-color: white; color: white;">
+        ♿ Take Survey
+      </a>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <h2 style="text-align: center; font-size: 36px; margin-bottom: 16px;">How It Works</h2>
+    <p style="text-align: center; color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+      Our app makes it easy to document and share trail accessibility information
+    </p>
+
+    <div class="features-grid">
+      <div class="feature-card card">
+        <div class="feature-icon">🗺️</div>
+        <h3 class="feature-title">Track Your Trail</h3>
+        <p class="feature-description">
+          Use GPS tracking to record your route with real-time distance, speed, and elevation data.
+        </p>
+      </div>
+
+      <div class="feature-card card">
+        <div class="feature-icon">♿</div>
+        <h3 class="feature-title">Document Accessibility</h3>
+        <p class="feature-description">
+          Complete detailed surveys about path surfaces, obstacles, amenities, and more.
+        </p>
+      </div>
+
+      <div class="feature-card card">
+        <div class="feature-icon">🤝</div>
+        <h3 class="feature-title">Share with Community</h3>
+        <p class="feature-description">
+          Help others by sharing your trail data and accessibility assessments.
+        </p>
+      </div>
+
+      <div class="feature-card card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">View Insights</h3>
+        <p class="feature-description">
+          Analyze your tracked routes and see detailed statistics about trail conditions.
+        </p>
+      </div>
+
+      <div class="feature-card card">
+        <div class="feature-icon">🔒</div>
+        <h3 class="feature-title">Secure & Private</h3>
+        <p class="feature-description">
+          Your data is stored securely and you control what you share with the community.
+        </p>
+      </div>
+
+      <div class="feature-card card">
+        <div class="feature-icon">📱</div>
+        <h3 class="feature-title">Mobile Friendly</h3>
+        <p class="feature-description">
+          Optimized for use on any device - phone, tablet, or desktop.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scripts -->
+   <!-- Firebase Setup -->
+  <script type="module" src="firebase-setup.js"></script>
+  
+  <!-- App JavaScript -->
+  <script type="module" src="src/landing.js"></script>
+  <script type="module" src="src/features/auth.js"></script>
+  <script src="./src/js/navigation.js"></script>
+  <script src="./src/js/toast.js"></script>
+
+</body>
+</html>
