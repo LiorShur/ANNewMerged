@@ -1,4 +1,4 @@
-// Compass rotation functionality
+// Complete compass.js - Always active compass with calibration
 export class CompassController {
   constructor() {
     this.isRotationEnabled = false;
@@ -14,7 +14,35 @@ export class CompassController {
   initialize() {
     this.setupToggleButton();
     this.checkDeviceSupport();
-    console.log('Compass controller initialized');
+    
+    // CRITICAL: Start orientation tracking immediately
+    this.startOrientationTracking();
+    
+    console.log('✅ Compass controller initialized - orientation tracking active');
+  }
+
+  async startOrientationTracking() {
+    // Request permission on iOS 13+
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceOrientationEvent.requestPermission();
+        if (permission !== 'granted') {
+          console.warn('⚠️ Device orientation permission denied');
+          return;
+        }
+      } catch (error) {
+        console.error('❌ Permission request failed:', error);
+        return;
+      }
+    }
+    
+    // Start listening - ALWAYS active
+    this.orientationHandler = (event) => {
+      this.handleOrientationChange(event);
+    };
+    
+    window.addEventListener('deviceorientation', this.orientationHandler);
+    console.log('🧭 Orientation tracking started (always active)');
   }
 
   setupToggleButton() {
@@ -32,7 +60,6 @@ export class CompassController {
       return false;
     }
 
-    // For iOS 13+, request permission
     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
       try {
         const permission = await DeviceOrientationEvent.requestPermission();
@@ -52,43 +79,12 @@ export class CompassController {
       return;
     }
 
-    if (this.isRotationEnabled) {
-      this.disableRotation();
-    } else {
-      this.enableRotation();
-    }
-  }
-
-  enableRotation() {
-    if (this.isRotationEnabled) return;
-
-    this.orientationHandler = (event) => {
-      this.handleOrientationChange(event);
-    };
-
-    window.addEventListener('deviceorientation', this.orientationHandler);
-    this.isRotationEnabled = true;
-    
+    // Toggle MAP rotation only (compass always tracks)
+    this.isRotationEnabled = !this.isRotationEnabled;
     this.updateToggleButton();
-    console.log('Compass rotation enabled');
-  }
-
-  disableRotation() {
-    if (!this.isRotationEnabled) return;
-
-    if (this.orientationHandler) {
-      window.removeEventListener('deviceorientation', this.orientationHandler);
-      this.orientationHandler = null;
-    }
-
-    this.isRotationEnabled = false;
     
-    // Reset rotation
-    this.resetMapRotation();
-    this.resetCompassRotation();
-    
-    this.updateToggleButton();
-    console.log('Compass rotation disabled');
+    console.log(`🗺️ Map rotation ${this.isRotationEnabled ? 'enabled' : 'disabled'}`);
+    console.log('   (Compass continues tracking independently)');
   }
 
   handleOrientationChange(event) {
@@ -96,12 +92,14 @@ export class CompassController {
 
     // Try different sources for compass heading
     if (typeof event.webkitCompassHeading !== "undefined") {
-      // iOS Safari
+      // iOS Safari - gives true compass heading (0=North)
       heading = event.webkitCompassHeading;
+      
     } else if (event.alpha !== null && event.alpha !== undefined) {
       // Android Chrome and others
       heading = (event.alpha - 90 + 360) % 360;  // Formula 4
       console.log(`🧭 Corrected heading: ${heading.toFixed(1)}°`);
+      console.log(`🧭 Raw alpha: ${event.alpha.toFixed(1)}° → Heading: ${heading.toFixed(1)}°`);
     }
 
     if (heading !== null) {
@@ -111,15 +109,18 @@ export class CompassController {
   }
 
   updateRotations() {
+    // Map rotation only if enabled
     if (this.isRotationEnabled) {
-    this.updateMapRotation();
-  }
+      this.updateMapRotation();
+    }
+    
+    // Compass and heading ALWAYS update
     this.updateCompassRotation();
     this.updateHeadingDisplay();
   }
 
   updateMapRotation() {
-    if (!this.dependencies.map || !this.isRotationEnabled) return;
+    if (!this.dependencies.map) return;
 
     try {
       this.dependencies.map.setRotation(this.currentHeading);
@@ -129,41 +130,33 @@ export class CompassController {
   }
 
   updateCompassRotation() {
-  const compassDisplay = document.getElementById('compass');
-  const needleElement = document.getElementById('compass-needle');
-  
-  if (!compassDisplay) return;
-  
-  // Rotate entire compass so North points north
-  compassDisplay.style.transform = `rotate(${-this.currentHeading}deg)`;
-  compassDisplay.style.transformOrigin = 'center center';
-  compassDisplay.style.transition = 'transform 0.3s ease-out';
-  
-  // Needle stays pointing up
-  if (needleElement) {
-    needleElement.style.transform = 'rotate(0deg)';
-    needleElement.style.transformOrigin = 'center center';
+    const compassDisplay = document.getElementById('compass');
+    if (!compassDisplay) return;
+    
+    // Rotate entire compass so North points north
+    compassDisplay.style.transform = `rotate(${-this.currentHeading}deg)`;
+    compassDisplay.style.transformOrigin = 'center center';
+    compassDisplay.style.transition = 'transform 0.3s ease-out';
   }
-}
 
   updateHeadingDisplay() {
-  const headingValue = document.getElementById('heading-value');
-  if (!headingValue) return;
+    const headingValue = document.getElementById('heading-value');
+    if (!headingValue) return;
 
-  // Round to nearest degree
-  const roundedHeading = Math.round(this.currentHeading);
-  headingValue.textContent = `${roundedHeading}°`;
-  
-  // Add cardinal direction
-  const cardinal = this.getCardinalDirection(roundedHeading);
-  headingValue.setAttribute('data-cardinal', cardinal);
-}
+    // Round to nearest degree
+    const roundedHeading = Math.round(this.currentHeading);
+    headingValue.textContent = `${roundedHeading}°`;
+    
+    // Add cardinal direction
+    const cardinal = this.getCardinalDirection(roundedHeading);
+    headingValue.setAttribute('data-cardinal', cardinal);
+  }
 
-getCardinalDirection(heading) {
-  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const index = Math.round(((heading % 360) / 45)) % 8;
-  return directions[index];
-}
+  getCardinalDirection(heading) {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    const index = Math.round(((heading % 360) / 45)) % 8;
+    return directions[index];
+  }
 
   updateToggleButton() {
     const toggleBtn = document.getElementById('toggleBtn');
@@ -171,10 +164,10 @@ getCardinalDirection(heading) {
 
     if (this.isRotationEnabled) {
       toggleBtn.style.background = '#4CAF50';
-      toggleBtn.title = 'Disable Rotation';
+      toggleBtn.title = 'Disable Map Rotation';
     } else {
       toggleBtn.style.background = 'rgba(0, 0, 0, 0.8)';
-      toggleBtn.title = 'Enable Rotation';
+      toggleBtn.title = 'Enable Map Rotation';
     }
   }
 
@@ -188,13 +181,6 @@ getCardinalDirection(heading) {
     }
   }
 
-  resetCompassRotation() {
-    const needleElement = document.getElementById('compass-needle');
-    if (!needleElement) return;
-    
-    needleElement.style.transform = 'rotate(0deg)';
-  }
-
   getCurrentHeading() {
     return this.currentHeading;
   }
@@ -204,8 +190,13 @@ getCardinalDirection(heading) {
   }
 
   cleanup() {
-    this.disableRotation();
-    console.log('Compass controller cleaned up');
+    // Stop orientation tracking
+    if (this.orientationHandler) {
+      window.removeEventListener('deviceorientation', this.orientationHandler);
+      this.orientationHandler = null;
+    }
+    
+    this.isRotationEnabled = false;
+    console.log('🧭 Compass controller cleaned up');
   }
-
 }
