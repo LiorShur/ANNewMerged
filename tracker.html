@@ -3,218 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Access Nature - Track accessible trails and share route information">
+  <meta name="description" content="Access Nature - Track accessible trails with GPS">
   <title>Trail Tracker - Access Nature</title>
   
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌲</text></svg>">
   
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
+  <!-- External CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
   
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="./src/css/ui-polish.css">
-  <link rel="stylesheet" href="./src/css/tracker-custom.css">
-  <link rel="stylesheet" href="./src/css/base.css">
-  <link rel="stylesheet" href="./src/css/layout.css">
-  <link rel="stylesheet" href="./src/css/components.css">
-  <link rel="stylesheet" href="./src/css/accessibility.css">
-  <link rel="stylesheet" href="./src/css/themes.css">
-  <link rel="stylesheet" href="./src/css/auth.css">
+  <!-- NEW: UI Polish CSS - Load FIRST for new components -->
+  <link rel="stylesheet" href="src/css/ui-polish.css">
   
-  <style>
-    /* Additional tracker-specific styles */
-    body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    /* Map Container - Full Screen */
-    .map-container {
-      position: fixed;
-      top: 60px; /* Below nav */
-      left: 0;
-      right: 0;
-      bottom: 80px; /* Above tracking controls */
-      z-index: 1;
-    }
-
-    #map {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Status Bar - Floating */
-    .status-bar {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(12px);
-      padding: 12px 24px;
-      border-radius: 30px;
-      z-index: 500;
-      display: flex;
-      gap: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      max-width: 90%;
-      overflow-x: auto;
-    }
-
-    .status-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-width: 60px;
-    }
-
-    .status-value {
-      font-size: 18px;
-      font-weight: 700;
-      color: #4CAF50;
-      font-family: 'SF Mono', Monaco, monospace;
-    }
-
-    .status-label {
-      font-size: 11px;
-      color: #ccc;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
-
-    /* Tracking Controls - Bottom Bar */
-    .tracking-controls {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      padding: 16px;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      z-index: 600;
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .tracking-controls .btn {
-      flex: 1;
-      min-width: 120px;
-      max-width: 180px;
-    }
-
-    /* Map Controls */
-    .map-controls {
-      position: fixed;
-      bottom: 100px;
-      right: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 500;
-    }
-
-    /* Recording Indicator */
-    .recording-indicator {
-      position: fixed;
-      top: 160px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(244, 67, 54, 0.95);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      z-index: 500;
-      animation: pulse 2s infinite;
-    }
-
-    .recording-indicator.active {
-      display: flex;
-    }
-
-    .recording-dot {
-      width: 8px;
-      height: 8px;
-      background: white;
-      border-radius: 50%;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-      50% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-    }
-
-    /* Mobile Optimizations */
-    @media (max-width: 767px) {
-      .status-bar {
-        top: 70px;
-        padding: 10px 16px;
-        gap: 16px;
-      }
-
-      .status-value {
-        font-size: 16px;
-      }
-
-      .status-label {
-        font-size: 10px;
-      }
-
-      .tracking-controls {
-        padding: 12px;
-      }
-
-      .tracking-controls .btn {
-        min-width: 100px;
-        padding: 12px 16px;
-        font-size: 14px;
-      }
-
-      .map-controls {
-        bottom: 90px;
-      }
-    }
-
-    /* Desktop Layout */
-    @media (min-width: 768px) {
-      .map-container {
-        bottom: 0;
-      }
-
-      .tracking-controls {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        border-radius: 16px 16px 0 0;
-        max-width: 700px;
-      }
-
-      .map-controls {
-        bottom: 20px;
-      }
-    }
-  </style>
+  <!-- EXISTING: Your App CSS -->
+  <link rel="stylesheet" href="src/css/base.css">
+  <link rel="stylesheet" href="src/css/layout.css">
+  <link rel="stylesheet" href="src/css/components.css">
+  <link rel="stylesheet" href="src/css/accessibility.css">
+  <link rel="stylesheet" href="src/css/themes.css">
+  <link rel="stylesheet" href="src/css/auth.css">
 </head>
 <body>
-<!-- Auth Status Bar -->
-  <div id="authStatusBar" class="auth-status-bar">
+
+  <!-- NEW: Mobile-First Top Navigation -->
+  <nav class="top-nav">
+  <a href="index.html" class="nav-brand">
+    <span class="nav-brand-icon">🌲</span>
+    <span>Access Nature</span>
+  </a>
+
+  <button 
+    class="menu-toggle" 
+    id="menuToggle" 
+    aria-label="Toggle navigation menu"
+    aria-expanded="false"
+  >
+    <div class="hamburger-icon">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </button>
+
+  <div class="nav-menu" id="navMenu">
+    <a href="index.html" class="nav-link">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+
+    <a href="tracker.html" class="nav-link">
+      <span class="nav-icon">📍</span>
+      <span class="nav-label">Track Trail</span>
+    </a>
+
+    <button class="nav-link" onclick="togglePanel('exportPanel')" type="button">
+      <span class="nav-icon">📤</span>
+      <span class="nav-label">Export</span>
+    </button>
+
+    <button class="nav-link" onclick="togglePanel('summaryPanel')" type="button">
+      <span class="nav-icon">📂</span>
+      <span class="nav-label">Routes</span>
+    </button>
+
+    <button class="nav-link" id="authNavBtn">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Account</span>
+    </button>
+  </div>
+</nav>
+
+  <!-- EXISTING: Auth Status Bar (kept for backward compatibility) -->
+  <div id="authStatusBar" class="auth-status-bar" style="display: none;">
     <div id="userInfo" class="user-info hidden">
       <span class="user-greeting">Welcome, <span id="userEmail"></span>!</span>
       <button id="logoutBtn" class="auth-btn logout-btn">Logout</button>
@@ -224,7 +85,7 @@
     </div>
   </div>
 
-  <!-- Auth Modal -->
+  <!-- EXISTING: Complete Auth Modal -->
   <div id="authModal" class="auth-modal hidden">
     <div class="auth-modal-backdrop" onclick="closeAuthModal()"></div>
     <div class="auth-modal-container">
@@ -317,581 +178,153 @@
       </div>
     </div>
   </div>
-  <!-- Mobile-First Navigation -->
-  <nav class="top-nav" role="navigation" aria-label="Main navigation">
-    <a href="index.html" class="nav-brand">
-      <span class="nav-brand-icon">🌲</span>
-      <span>Access Nature</span>
-    </a>
-    
-    <button class="menu-toggle" 
-            aria-label="Toggle navigation menu"
-            aria-expanded="false"
-            id="menuToggle">
-      <span class="hamburger-icon">
-        <span></span>
-        <span></span>
-        <span></span>
-      </span>
-    </button>
-    
-    <div class="nav-menu" id="navMenu">
-      <a href="index.html" class="nav-link">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Home</span>
-      </a>
-      <a href="tracker.html" class="nav-link active">
-        <span class="nav-icon">🗺️</span>
-        <span class="nav-label">Track Trail</span>
-      </a>
-      <a href="routes.html" class="nav-link">
-        <span class="nav-icon">📍</span>
-        <span class="nav-label">My Routes</span>
-      </a>
-      <a href="accessibility.html" class="nav-link">
-        <span class="nav-icon">♿</span>
-        <span class="nav-label">Survey</span>
-      </a>
-      <a href="profile.html" class="nav-link">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">Profile</span>
-      </a>
-    </div>
-  </nav>
 
-  <!-- Status Bar -->
-  <div class="status-bar" id="statusBar">
-    <div class="status-item">
-      <div class="status-value" id="distanceValue">0.00</div>
-      <div class="status-label">Distance (km)</div>
-    </div>
-    <div class="status-item">
-      <div class="status-value" id="durationValue">00:00</div>
-      <div class="status-label">Duration</div>
-    </div>
-    <div class="status-item">
-      <div class="status-value" id="speedValue">0.0</div>
-      <div class="status-label">Speed (km/h)</div>
-    </div>
-    <div class="status-item">
-      <div class="status-value" id="pointsValue">0</div>
-      <div class="status-label">Points</div>
-    </div>
+  <!-- EXISTING: Cloud Sync Indicator -->
+  <div id="cloudSyncIndicator" class="cloud-sync-indicator hidden">
+    <span class="sync-icon">☁️</span>
+    <span class="sync-text">Syncing...</span>
   </div>
 
-  <!-- Recording Indicator -->
-  <div class="recording-indicator" id="recordingIndicator">
-    <span class="recording-dot"></span>
-    <span>Recording</span>
-  </div>
-
-  <!-- Map Container -->
-  <div class="map-container">
+  <!-- EXISTING: Map Container -->
+  <div id="map-container">
     <div id="map"></div>
   </div>
 
-  <!-- Map Controls -->
-  <div class="map-controls">
-    <button class="map-control-button" 
-            id="locationBtn"
-            aria-label="Center on my location"
-            title="My Location">
-      📍
-    </button>
-    <button class="map-control-button" 
-            id="compassBtn"
-            aria-label="Toggle compass"
-            title="Compass">
-      🧭
-    </button>
-    <button class="map-control-button" 
-            id="layersBtn"
-            aria-label="Change map layer"
-            title="Map Layers">
-      🗺️
-    </button>
+  <!-- EXISTING: Compass -->
+  <div id="compass">
+    <div id="compass-needle"></div>
+    <div id="compass-center"></div>
   </div>
 
-  <!-- Tracking Controls -->
-  <div class="tracking-controls">
-    <button class="btn btn-success" 
-            id="startBtn"
-            aria-label="Start tracking">
-      ▶️ Start
-    </button>
-    <button class="btn btn-warning" 
-            id="pauseBtn"
-            aria-label="Pause tracking"
-            style="display: none;">
-      ⏸️ Pause
-    </button>
-    <button class="btn btn-danger" 
-            id="stopBtn"
-            aria-label="Stop tracking"
-            style="display: none;">
-      ⏹️ Stop
-    </button>
-    <button class="btn btn-primary" 
-            id="surveyBtn"
-            aria-label="Fill accessibility survey">
-      ♿ Survey
-    </button>
-    <button class="btn btn-secondary" 
-            id="saveBtn"
-            aria-label="Save route"
-            style="display: none;">
-      💾 Save
-    </button>
+  <!-- EXISTING: Top Control Bar -->
+  <div class="top-bar">
+    <button id="startBtn" class="round-button" title="Start Tracking">▶</button>
+    <button id="pauseBtn" class="round-button" title="Pause">⏸</button>
+    <button id="stopBtn" class="round-button" title="Stop">⏹</button>
+    <span id="timer" class="stat-display">00:00:00</span>
+    <span class="separator">|</span>
+    <span id="distance" class="stat-display">0.00 km</span>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- EXISTING: Left Controls -->
+  <div class="floating-left">
+    <button id="toggleBtn" class="round-button" title="Toggle Rotation">🧭</button>
+    <button class="round-button" onclick="openAccessibilityForm()" title="Accessibility">♿</button>
+  </div>
+
+  <!-- EXISTING: Right Media Panel -->
+  <div class="floating-right media-panel" id="mediaPanel">
+    <button id="takePhotoBtn" class="round-button" title="Take Photo">📷</button>
+    <button class="round-button" onclick="addTextNote()" title="Add Note">📝</button>
+    <button class="round-button" onclick="showRouteDataOnMap()" title="Show Route Data">🗺</button>
+  </div>
+
+  <!-- EXISTING: Bottom Navigation -->
+  <div id="bottomNav" class="bottom-nav">
+    <button class="nav-button" onclick="togglePanel('exportPanel')">Export</button>
+    <button class="nav-button" onclick="togglePanel('summaryPanel')">Routes</button>
+    <button class="nav-button" onclick="togglePanel('trailGuidePanel')">Guides</button>
+    <button class="nav-button" onclick="togglePanel('devToolsPanel')">Tools</button>
+  </div>
+
+  <!-- EXISTING: Export Panel -->
+  <div id="exportPanel" class="bottom-popup hidden">
+    <button id="prepareAndExportBtn">📦 Export Route</button>
+    <button id="exportGPXBtn">📍 Export GPX</button>
+    <button id="exportPDFBtn">📄 Export PDF</button>
+    <button id="exportSummaryBtn">🌐 Export Trail Guide</button>
+    <button id="saveToCloudBtn" class="cloud-save-btn">☁️ Save to Cloud</button>
+  </div>
+
+  <!-- EXISTING: Summary Panel -->
+  <div id="summaryPanel" class="bottom-popup hidden">
+    <button id="loadCloudRoutesBtn" class="cloud-load-btn">☁️ Load My Routes</button>
+    <button id="loadMyGuidesBtn" class="cloud-load-btn">🌐 Load My Guides</button>
+    <button id="clearAllSessionsBtn">🗑️ Clear Routes</button>
+    <button id="clearAllAppDataBtn">🧹 Clear Everything</button>
+  </div>
+
+  <!-- EXISTING: Trail Guide Panel -->
+  <div id="trailGuidePanel" class="bottom-popup hidden">
+    <h3>🌐 My Trail Guides</h3>
+    <div id="myGuidesList" class="guides-list">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+
+  <!-- EXISTING: Dev Tools Panel -->
+  <div id="devToolsPanel" class="bottom-popup hidden">
+    <button onclick="showStorageMonitor()">🧪 Storage Monitor</button>
+    <button onclick="triggerImport()">📥 Import Route</button>
+    <button id="resetBtn" onclick="confirmAndResetApp()">🔄 Reset App</button>
+  </div>
+
+  <!-- EXISTING: Accessibility Form Modal -->
+  <div id="accessibilityOverlay" class="overlay hidden">
+    <div id="accessibilityFormContainer" class="modal-container"></div>
+  </div>
+
+  <!-- EXISTING: Hidden File Inputs -->
+  <input type="file" id="photoInput" accept="image/*" capture="environment" class="hidden">
+  <input type="file" id="importFile" accept=".json,.gpx" class="hidden">
+
   <!-- External Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
-  <!-- App JavaScript -->
-  <script type="module" src="./src/main.js"></script>
-  <script type="module" src="./src/features/auth.js"></script>
-  
-  <!-- UI Modules -->
+  <!-- NEW: UI Polish JavaScript - Load BEFORE your app scripts -->
   <script src="./src/js/navigation.js"></script>
   <script src="./src/js/toast.js"></script>
   <script src="./src/js/loading.js"></script>
   <script src="./src/js/modal.js"></script>
-  <script src="./src/js/form-validation.js"></script>
-  <script src="./src/js/touch-interactions.js"></script>
 
-  <!-- Tracker Application -->
-  <script>
-    // =============================================
-    // TRACKER APPLICATION
-    // =============================================
-    
-    class TrailTracker {
-      constructor() {
-        this.map = null;
-        this.currentPosition = null;
-        this.tracking = false;
-        this.paused = false;
-        this.routePoints = [];
-        this.currentPolyline = null;
-        this.startTime = null;
-        this.totalDistance = 0;
-        this.timer = null;
-        this.watchId = null;
-        
-        this.init();
-      }
+  <!-- EXISTING: Your App JavaScript -->
+  <script type="module" src="src/main.js"></script>
+  <script type="module" src="src/features/auth.js"></script>
 
-      init() {
-        this.initMap();
-        this.setupEventListeners();
-        this.requestLocation();
-      }
-
-      initMap() {
-        // Initialize map
-        this.map = L.map('map').setView([51.505, -0.09], 13);
-
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19
-        }).addTo(this.map);
-
-        toast.info('Map Ready', 'Tap "Start" to begin tracking');
-      }
-
-      setupEventListeners() {
-        // Start button
-        document.getElementById('startBtn').addEventListener('click', () => {
-          this.startTracking();
-        });
-
-        // Pause button
-        document.getElementById('pauseBtn').addEventListener('click', () => {
-          this.pauseTracking();
-        });
-
-        // Stop button
-        document.getElementById('stopBtn').addEventListener('click', async () => {
-          const confirmed = await modal.confirm({
-            title: 'Stop Tracking',
-            message: 'Are you sure you want to stop tracking? You can save your route afterwards.',
-            confirmText: 'Stop',
-            confirmClass: 'btn-danger'
-          });
+  <!-- NEW: Bridge Script - Connects new nav to existing auth -->
+  <!-- <script>
+    // Connect auth button in new navigation with existing auth system
+    document.addEventListener('DOMContentLoaded', () => {
+      const authNavBtn = document.getElementById('authNavBtn');
+      const authNavLabel = document.getElementById('authNavLabel');
+      
+      if (authNavBtn && authNavLabel) {
+        authNavBtn.addEventListener('click', () => {
+          // Trigger your existing auth modal
+          const showAuthBtn = document.getElementById('showAuthBtn');
+          const logoutBtn = document.getElementById('logoutBtn');
           
-          if (confirmed) {
-            this.stopTracking();
+          if (showAuthBtn && !showAuthBtn.closest('.hidden')) {
+            showAuthBtn.click();
+          } else if (logoutBtn && !logoutBtn.closest('.hidden')) {
+            logoutBtn.click();
           }
         });
-
-        // Save button
-        document.getElementById('saveBtn').addEventListener('click', () => {
-          this.saveRoute();
-        });
-
-        // Survey button
-        document.getElementById('surveyBtn').addEventListener('click', () => {
-          window.location.href = 'accessibility.html';
-        });
-
-        // Location button
-        document.getElementById('locationBtn').addEventListener('click', () => {
-          this.centerOnLocation();
-        });
-
-        // Compass button
-        document.getElementById('compassBtn').addEventListener('click', () => {
-          toast.info('Compass', 'Compass feature coming soon!');
-        });
-
-        // Layers button
-        document.getElementById('layersBtn').addEventListener('click', () => {
-          this.showLayerOptions();
-        });
       }
 
-      requestLocation() {
-        if ('geolocation' in navigator) {
-          loading.show('Getting your location...');
-          
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              loading.hide();
-              this.currentPosition = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              };
-              this.map.setView([this.currentPosition.lat, this.currentPosition.lng], 15);
-              
-              // Add marker
-              L.marker([this.currentPosition.lat, this.currentPosition.lng])
-                .addTo(this.map)
-                .bindPopup('You are here')
-                .openPopup();
-              
-              toast.success('Location Found', 'Ready to start tracking');
-            },
-            (error) => {
-              loading.hide();
-              toast.error('Location Error', 'Could not get your location. Please enable GPS.');
-              console.error('Geolocation error:', error);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            }
-          );
+      // Update navigation label when auth state changes
+      // This will be handled by your existing auth.js
+      const observer = new MutationObserver(() => {
+        const userInfo = document.getElementById('userInfo');
+        if (userInfo && !userInfo.classList.contains('hidden')) {
+          authNavLabel.textContent = 'Sign Out';
         } else {
-          toast.error('GPS Unavailable', 'Your device does not support geolocation');
+          authNavLabel.textContent = 'Sign In';
         }
-      }
-
-      startTracking() {
-        if (this.tracking && !this.paused) return;
-        
-        if (this.paused) {
-          // Resume tracking
-          this.paused = false;
-          this.startTimer();
-        } else {
-          // Start new tracking
-          this.tracking = true;
-          this.routePoints = [];
-          this.totalDistance = 0;
-          this.startTime = Date.now();
-          this.startTimer();
-          
-          // Initialize polyline
-          this.currentPolyline = L.polyline([], {
-            color: '#4CAF50',
-            weight: 4,
-            opacity: 0.7
-          }).addTo(this.map);
-        }
-
-        // Update UI
-        document.getElementById('startBtn').style.display = 'none';
-        document.getElementById('pauseBtn').style.display = 'inline-flex';
-        document.getElementById('stopBtn').style.display = 'inline-flex';
-        document.getElementById('recordingIndicator').classList.add('active');
-
-        // Start watching position
-        this.watchId = navigator.geolocation.watchPosition(
-          (position) => this.updatePosition(position),
-          (error) => console.error('Position error:', error),
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          }
-        );
-
-        toast.success('Tracking Started', 'Recording your trail');
-      }
-
-      pauseTracking() {
-        this.paused = true;
-        clearInterval(this.timer);
-        
-        if (this.watchId) {
-          navigator.geolocation.clearWatch(this.watchId);
-          this.watchId = null;
-        }
-
-        // Update UI
-        document.getElementById('startBtn').style.display = 'inline-flex';
-        document.getElementById('startBtn').textContent = '▶️ Resume';
-        document.getElementById('pauseBtn').style.display = 'none';
-        document.getElementById('recordingIndicator').classList.remove('active');
-
-        toast.info('Tracking Paused', 'Tap Resume to continue');
-      }
-
-      stopTracking() {
-        this.tracking = false;
-        this.paused = false;
-        clearInterval(this.timer);
-        
-        if (this.watchId) {
-          navigator.geolocation.clearWatch(this.watchId);
-          this.watchId = null;
-        }
-
-        // Update UI
-        document.getElementById('startBtn').style.display = 'inline-flex';
-        document.getElementById('startBtn').textContent = '▶️ Start';
-        document.getElementById('pauseBtn').style.display = 'none';
-        document.getElementById('stopBtn').style.display = 'none';
-        document.getElementById('saveBtn').style.display = 'inline-flex';
-        document.getElementById('recordingIndicator').classList.remove('active');
-
-        toast.success('Tracking Stopped', 'You can now save your route');
-      }
-
-      updatePosition(position) {
-        const newPoint = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          timestamp: Date.now()
-        };
-
-        this.routePoints.push(newPoint);
-        this.currentPolyline.addLatLng([newPoint.lat, newPoint.lng]);
-
-        // Update distance if not first point
-        if (this.routePoints.length > 1) {
-          const lastPoint = this.routePoints[this.routePoints.length - 2];
-          const distance = this.calculateDistance(lastPoint, newPoint);
-          this.totalDistance += distance;
-        }
-
-        // Update UI
-        this.updateStats();
-      }
-
-      startTimer() {
-        this.timer = setInterval(() => {
-          this.updateStats();
-        }, 1000);
-      }
-
-      updateStats() {
-        const duration = this.startTime ? Date.now() - this.startTime : 0;
-        const hours = Math.floor(duration / 3600000);
-        const minutes = Math.floor((duration % 3600000) / 60000);
-        const seconds = Math.floor((duration % 60000) / 1000);
-        
-        document.getElementById('distanceValue').textContent = this.totalDistance.toFixed(2);
-        document.getElementById('durationValue').textContent = 
-          `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        const speed = duration > 0 ? (this.totalDistance / (duration / 3600000)) : 0;
-        document.getElementById('speedValue').textContent = speed.toFixed(1);
-        
-        document.getElementById('pointsValue').textContent = this.routePoints.length;
-      }
-
-      calculateDistance(point1, point2) {
-        const R = 6371; // Earth's radius in km
-        const dLat = this.toRad(point2.lat - point1.lat);
-        const dLon = this.toRad(point2.lng - point1.lng);
-        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                  Math.cos(this.toRad(point1.lat)) * Math.cos(this.toRad(point2.lat)) *
-                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-      }
-
-      toRad(degrees) {
-        return degrees * (Math.PI / 180);
-      }
-
-      centerOnLocation() {
-        if (this.currentPosition) {
-          this.map.setView([this.currentPosition.lat, this.currentPosition.lng], 15);
-          toast.info('Centered', 'Map centered on your location');
-        } else {
-          this.requestLocation();
-        }
-      }
-
-      async saveRoute() {
-        if (this.routePoints.length === 0) {
-          toast.warning('No Route', 'Please record a route before saving');
-          return;
-        }
-
-        // Show save dialog
-        const content = document.createElement('div');
-        content.innerHTML = `
-          <div class="form-group">
-            <label class="form-label form-label-required" for="routeName">Route Name</label>
-            <input type="text" 
-                   id="routeName" 
-                   name="routeName"
-                   class="form-input" 
-                   placeholder="e.g., Morning Trail Walk"
-                   required>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="routeDescription">Description (Optional)</label>
-            <textarea id="routeDescription" 
-                      name="routeDescription"
-                      class="form-textarea" 
-                      placeholder="Add notes about this trail..."
-                      rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <p><strong>Route Stats:</strong></p>
-            <p>Distance: ${this.totalDistance.toFixed(2)} km</p>
-            <p>Points: ${this.routePoints.length}</p>
-          </div>
-        `;
-
-        modal.show({
-          title: 'Save Route',
-          content: content,
-          buttons: [
-            {
-              text: 'Cancel',
-              className: 'btn-secondary'
-            },
-            {
-              text: 'Save',
-              className: 'btn-primary',
-              onClick: async () => {
-                const routeName = document.getElementById('routeName').value.trim();
-                if (!routeName) {
-                  toast.error('Error', 'Please enter a route name');
-                  return false; // Don't close modal
-                }
-
-                const routeDescription = document.getElementById('routeDescription').value.trim();
-                
-                await this.performSave(routeName, routeDescription);
-                return true; // Close modal
-              },
-              close: false
-            }
-          ]
-        });
-      }
-
-      async performSave(name, description) {
-        const saveBtn = document.getElementById('saveBtn');
-        
-        await loading.withButtonLoading(saveBtn, async () => {
-          // Simulate save delay
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          // In a real app, save to localStorage or backend
-          const route = {
-            name,
-            description,
-            distance: this.totalDistance,
-            points: this.routePoints,
-            timestamp: Date.now()
-          };
-          
-          // Save to localStorage
-          const routes = JSON.parse(localStorage.getItem('routes') || '[]');
-          routes.push(route);
-          localStorage.setItem('routes', JSON.stringify(routes));
-        });
-
-        toast.success('Route Saved', `"${name}" has been saved successfully`);
-        
-        // Reset UI
-        document.getElementById('saveBtn').style.display = 'none';
-        document.getElementById('startBtn').textContent = '▶️ Start';
-        
-        // Clear map
-        if (this.currentPolyline) {
-          this.map.removeLayer(this.currentPolyline);
-        }
-        
-        // Reset stats
-        this.routePoints = [];
-        this.totalDistance = 0;
-        this.startTime = null;
-        this.updateStats();
-      }
-
-      showLayerOptions() {
-        modal.show({
-          title: 'Map Layers',
-          content: `
-            <div class="radio-option">
-              <input type="radio" id="layer1" name="layer" value="osm" checked>
-              <label for="layer1" class="radio-label">
-                <strong>OpenStreetMap</strong><br>
-                <small>Standard street map</small>
-              </label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="layer2" name="layer" value="topo">
-              <label for="layer2" class="radio-label">
-                <strong>Topographic</strong><br>
-                <small>Terrain and elevation</small>
-              </label>
-            </div>
-            <div class="radio-option">
-              <input type="radio" id="layer3" name="layer" value="satellite">
-              <label for="layer3" class="radio-label">
-                <strong>Satellite</strong><br>
-                <small>Aerial imagery</small>
-              </label>
-            </div>
-          `,
-          buttons: [
-            {
-              text: 'Apply',
-              className: 'btn-primary',
-              onClick: () => {
-                const selected = document.querySelector('input[name="layer"]:checked').value;
-                toast.info('Map Layer', `Switched to ${selected} layer (demo)`);
-              }
-            }
-          ]
-        });
-      }
-    }
-
-    // Initialize tracker when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        window.tracker = new TrailTracker();
       });
-    } else {
-      window.tracker = new TrailTracker();
-    }
-  </script>
+
+      const authStatusBar = document.getElementById('authStatusBar');
+      if (authStatusBar) {
+        observer.observe(authStatusBar, { 
+          attributes: true, 
+          childList: true, 
+          subtree: true 
+        });
+      }
+    });
+  </script> -->
 
 </body>
 </html>

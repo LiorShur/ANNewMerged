@@ -8,6 +8,9 @@ class LandingPageController {
     this.currentSearch = '';
     this.lastVisible = null;
     this.isLoading = false;
+    this.allFeaturedTrails = [];      // Store ALL trails
+    this.displayedFeaturedCount = 0;  // How many currently shown
+    this.featuredBatchSize = 6;       // Load 6 at a time
   }
 
 async initialize() {
@@ -342,38 +345,118 @@ async loadCommunityStats() {
 // UPDATED: Load featured trails with better error handling
 async loadFeaturedTrails() {
   try {
-    console.log('Loading featured trails...');
+    console.log('📍 Loading featured trails...');
     
-    const { collection, query, where, getDocs } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
+    const { collection, query, where, getDocs } = 
+      await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js");
     
-    // Simple query without orderBy to avoid index issues
+    // Get ALL public guides
     const featuredQuery = query(
       collection(db, 'trail_guides'),
       where('isPublic', '==', true)
     );
     
     const querySnapshot = await getDocs(featuredQuery);
-    const featured = [];
+    this.allFeaturedTrails = [];  // ✅ Store ALL
     
     querySnapshot.forEach(doc => {
-      featured.push({
+      this.allFeaturedTrails.push({
         id: doc.id,
         ...doc.data()
       });
     });
     
-    // Sort client-side by creation date (newest first)
-    featured.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
+    // Sort by date
+    this.allFeaturedTrails.sort((a, b) => 
+      new Date(b.generatedAt) - new Date(a.generatedAt)
+    );
     
-    // Take first 6 for featured display
-    const featuredToShow = featured.slice(0, 6);
+    console.log(`✅ Found ${this.allFeaturedTrails.length} total public trail guides`);
     
-    console.log(`Loaded ${featuredToShow.length} featured trails`);
-    this.displayFeaturedTrails(featuredToShow);
+    // Display first batch
+    this.displayedFeaturedCount = 0;
+    this.displayFeaturedBatch();  // ✅ New method
     
   } catch (error) {
-    console.error('Failed to load featured trails:', error);
+    console.error('❌ Failed to load featured trails:', error);
     this.showFeaturedPlaceholder();
+  }
+}
+
+displayFeaturedBatch() {
+  const container = document.getElementById('featuredTrails');
+  if (!container) return;
+  
+  // Empty state
+  if (this.allFeaturedTrails.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">⭐</div>
+        <h3>No featured trails yet</h3>
+        <p>Be the first to contribute accessible trail guides!</p>
+        <button onclick="openTracker()" class="nav-card-button primary">
+          Start Mapping
+        </button>
+      </div>
+    `;
+    this.updateLoadMoreButton();
+    return;
+  }
+  
+  // Calculate what to show
+  const startIndex = this.displayedFeaturedCount;
+  const endIndex = Math.min(
+    startIndex + this.featuredBatchSize,   // +6
+    this.allFeaturedTrails.length          // Don't exceed total
+  );
+  
+  const trailsToShow = this.allFeaturedTrails.slice(startIndex, endIndex);
+  
+  // First batch: replace content
+  if (this.displayedFeaturedCount === 0) {
+    const featuredHTML = trailsToShow
+      .map(trail => this.createFeaturedTrailCard(trail))
+      .join('');
+    container.innerHTML = featuredHTML;
+  } 
+  // Subsequent batches: append content
+  else {
+    const featuredHTML = trailsToShow
+      .map(trail => this.createFeaturedTrailCard(trail))
+      .join('');
+    container.insertAdjacentHTML('beforeend', featuredHTML);
+  }
+  
+  this.displayedFeaturedCount = endIndex;
+  console.log(`📊 Showing ${this.displayedFeaturedCount} of ${this.allFeaturedTrails.length} trails`);
+  
+  // Update button text
+  this.updateLoadMoreButton();
+}
+
+updateLoadMoreButton() {
+  const button = document.querySelector('.load-more-btn');
+  if (!button) return;
+  
+  const remaining = this.allFeaturedTrails.length - this.displayedFeaturedCount;
+  
+  if (remaining > 0) {
+    // More trails available
+    button.style.display = 'block';
+    button.textContent = `Load More Trails (${remaining} more available)`;
+    button.disabled = false;
+    button.style.opacity = '1';
+    button.style.cursor = 'pointer';
+  } else {
+    // All trails loaded
+    if (this.allFeaturedTrails.length > 0) {
+      button.textContent = `All ${this.allFeaturedTrails.length} trails loaded ✓`;
+      button.disabled = true;
+      button.style.opacity = '0.5';
+      button.style.cursor = 'not-allowed';
+    } else {
+      button.style.display = 'none';
+    }
   }
 }
 
@@ -654,10 +737,29 @@ Happy trail mapping! 🥾`);
   }
 
   async loadMoreFeatured() {
-    // Load more featured trails
-    console.log('⭐ Loading more featured trails...');
-    // This would load additional featured trails
+  console.log('⭐ Loading more featured trails...');
+  
+  // Check if all loaded
+  if (this.displayedFeaturedCount >= this.allFeaturedTrails.length) {
+    console.log('✅ All trails already displayed');
+    return;
   }
+  
+  // Show loading state
+  const button = document.querySelector('.load-more-btn');
+  if (button) {
+    button.textContent = 'Loading...';
+    button.disabled = true;
+    
+    // Small delay for UX
+    setTimeout(() => {
+      this.displayFeaturedBatch();  // Load next batch
+      button.disabled = false;
+    }, 300);
+  } else {
+    this.displayFeaturedBatch();
+  }
+}
 
   clearFilters() {
     // Clear all filters and search
@@ -1045,7 +1147,6 @@ class LandingAuthController {
     if (logoutBtn) {
       logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        this.handleLogout();
       });
     }
 
@@ -1100,35 +1201,10 @@ setupModalEventListeners() {
   }
 
 showAuthModal() {
-  console.log('📱 Opening auth modal (permanent fix)...');
-  
-  // Remove any existing modal to start fresh
-  const existingModal = document.getElementById('authModal');
-  if (existingModal) {
-    existingModal.remove();
-  }
-  
-  // Create the working modal structure
-  this.createWorkingAuthModal();
-  
-  // Show the modal
   const modal = document.getElementById('authModal');
   if (modal) {
-    modal.style.display = 'flex';
-    console.log('✅ Auth modal opened successfully');
-    
-    // Focus on first input for accessibility
-    setTimeout(() => {
-      const firstInput = modal.querySelector('input[type="email"]');
-      if (firstInput) {
-        firstInput.focus();
-      }
-    }, 100);
-    
-    return true;
-  } else {
-    console.error('❌ Failed to create auth modal');
-    return false;
+    modal.classList.remove('hidden');
+    this.showLoginForm();
   }
 }
 
@@ -1152,328 +1228,12 @@ showSignupForm() {
   if (title) title.textContent = 'Join Access Nature';
 }
 
-  closeAuthModal() {
+closeAuthModal() {
   const modal = document.getElementById('authModal');
   if (modal) {
-    modal.remove(); // Completely remove it
-    console.log('✅ Auth modal closed and removed');
+    modal.classList.add('hidden');
+    this.clearAuthForms();
   }
-}
-
-  createWorkingAuthModal() {
-  const modalHTML = `
-    <div id="authModal" style="
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
-    ">
-      <div class="auth-container" style="
-        background: white;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 420px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-        position: relative;
-        z-index: 100000;
-      ">
-        <!-- Header -->
-        <div class="auth-header" style="
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 25px;
-          text-align: center;
-          position: relative;
-          border-radius: 20px 20px 0 0;
-        ">
-          <h2 id="authTitle" style="
-            margin: 0;
-            font-size: 1.8rem;
-            font-weight: 600;
-          ">Welcome to Access Nature</h2>
-          <button onclick="window.landingAuth.closeAuthModal()" style="
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">✕</button>
-        </div>
-        
-        <!-- Login Form -->
-        <div id="loginFormContent" class="form-content" style="padding: 30px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 1.4rem; color: #333;">Sign In to Your Account</h3>
-            <p style="margin: 0; color: #666; font-size: 0.95rem;">Continue your accessibility mapping journey</p>
-          </div>
-          
-          <form id="loginFormEl" style="margin-bottom: 25px;">
-            <div style="margin-bottom: 20px; position: relative;">
-              <input type="email" id="loginEmailInput" placeholder="Email address" required style="
-                width: 100%;
-                padding: 15px 20px 15px 50px;
-                border: 2px solid #e1e5e9;
-                border-radius: 12px;
-                font-size: 16px;
-                background: #f8f9fa;
-                box-sizing: border-box;
-              ">
-              <span style="
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 18px;
-              ">📧</span>
-            </div>
-            
-            <div style="margin-bottom: 20px; position: relative;">
-              <input type="password" id="loginPasswordInput" placeholder="Password" required style="
-                width: 100%;
-                padding: 15px 20px 15px 50px;
-                border: 2px solid #e1e5e9;
-                border-radius: 12px;
-                font-size: 16px;
-                background: #f8f9fa;
-                box-sizing: border-box;
-              ">
-              <span style="
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 18px;
-              ">🔒</span>
-            </div>
-            
-            <button type="submit" id="loginSubmitBtn" style="
-              width: 100%;
-              padding: 16px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              border-radius: 12px;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              margin-bottom: 20px;
-            ">
-              <span class="btn-text">Sign In</span>
-              <span class="btn-spinner hidden">⏳</span>
-            </button>
-          </form>
-          
-          <div style="text-align: center; margin: 25px 0; position: relative;">
-            <span style="
-              background: white;
-              padding: 0 20px;
-              color: #666;
-              font-size: 14px;
-            ">or</span>
-            <div style="
-              position: absolute;
-              top: 50%;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: #e1e5e9;
-              z-index: -1;
-            "></div>
-          </div>
-          
-          <button onclick="window.landingAuth.handleGoogleAuth()" style="
-            width: 100%;
-            padding: 14px;
-            background: white;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 15px;
-            cursor: pointer;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-          ">
-            <span>Continue with Google</span>
-          </button>
-          
-          <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e1e5e9;">
-            <p style="margin: 0; color: #666; font-size: 14px;">
-              Don't have an account? 
-              <button type="button" onclick="window.landingAuth.showSignupForm()" style="
-                background: none;
-                border: none;
-                color: #667eea;
-                font-weight: 600;
-                cursor: pointer;
-                text-decoration: underline;
-                font-size: 14px;
-              ">Sign up</button>
-            </p>
-          </div>
-        </div>
-        
-        <!-- Signup Form (hidden initially) -->
-        <div id="signupFormContent" class="form-content" style="padding: 30px; display: none;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 1.4rem; color: #333;">Create Your Account</h3>
-            <p style="margin: 0; color: #666; font-size: 0.95rem;">Join the community making nature accessible</p>
-          </div>
-          
-          <form id="signupFormEl" style="margin-bottom: 25px;">
-            <div style="margin-bottom: 20px; position: relative;">
-              <input type="text" id="signupNameInput" placeholder="Full name" required style="
-                width: 100%;
-                padding: 15px 20px 15px 50px;
-                border: 2px solid #e1e5e9;
-                border-radius: 12px;
-                font-size: 16px;
-                background: #f8f9fa;
-                box-sizing: border-box;
-              ">
-              <span style="
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 18px;
-              ">👤</span>
-            </div>
-            
-            <div style="margin-bottom: 20px; position: relative;">
-              <input type="email" id="signupEmailInput" placeholder="Email address" required style="
-                width: 100%;
-                padding: 15px 20px 15px 50px;
-                border: 2px solid #e1e5e9;
-                border-radius: 12px;
-                font-size: 16px;
-                background: #f8f9fa;
-                box-sizing: border-box;
-              ">
-              <span style="
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 18px;
-              ">📧</span>
-            </div>
-            
-            <div style="margin-bottom: 20px; position: relative;">
-              <input type="password" id="signupPasswordInput" placeholder="Create password" required style="
-                width: 100%;
-                padding: 15px 20px 15px 50px;
-                border: 2px solid #e1e5e9;
-                border-radius: 12px;
-                font-size: 16px;
-                background: #f8f9fa;
-                box-sizing: border-box;
-              ">
-              <span style="
-                position: absolute;
-                left: 18px;
-                top: 50%;
-                transform: translateY(-50%);
-                font-size: 18px;
-              ">🔒</span>
-            </div>
-            
-            <button type="submit" id="signupSubmitBtn" style="
-              width: 100%;
-              padding: 16px;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-              border: none;
-              border-radius: 12px;
-              font-size: 16px;
-              font-weight: 600;
-              cursor: pointer;
-              margin-bottom: 20px;
-            ">
-              <span class="btn-text">Create Account</span>
-              <span class="btn-spinner hidden">⏳</span>
-            </button>
-          </form>
-          
-          <div style="text-align: center; margin: 25px 0; position: relative;">
-            <span style="
-              background: white;
-              padding: 0 20px;
-              color: #666;
-              font-size: 14px;
-            ">or</span>
-            <div style="
-              position: absolute;
-              top: 50%;
-              left: 0;
-              right: 0;
-              height: 1px;
-              background: #e1e5e9;
-              z-index: -1;
-            "></div>
-          </div>
-          
-          <button onclick="window.landingAuth.handleGoogleAuth()" style="
-            width: 100%;
-            padding: 14px;
-            background: white;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 15px;
-            cursor: pointer;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-          ">
-            <span>Continue with Google</span>
-          </button>
-          
-          <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e1e5e9;">
-            <p style="margin: 0; color: #666; font-size: 14px;">
-              Already have an account? 
-              <button type="button" onclick="window.landingAuth.showLoginForm()" style="
-                background: none;
-                border: none;
-                color: #667eea;
-                font-weight: 600;
-                cursor: pointer;
-                text-decoration: underline;
-                font-size: 14px;
-              ">Sign in</button>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  
-  // Setup event listeners immediately
-  this.setupModalEventListeners();
-  
-  console.log('✅ Working auth modal created with event listeners');
 }
 
   switchToLogin() {
@@ -1625,58 +1385,24 @@ async handleGoogleAuth() {
   }
 }
 
-  async handleLogout() {
-    try {
-      const confirmed = confirm('Are you sure you want to sign out?');
-      if (!confirmed) return;
 
-      const { signOut } = await import("https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js");
-      const { auth } = await import('./firebase-setup.js');
+async updateAuthStatus() {
+  const userInfo = document.getElementById('userInfo');
+  const authPrompt = document.getElementById('authPrompt');
+  const userEmail = document.getElementById('userEmail');
 
-      await signOut(auth);
-      console.log('👋 Logout successful');
-      this.showSuccessMessage('See you next time! 👋');
-      
-    } catch (error) {
-      console.error('❌ Logout failed:', error);
-      this.showAuthError('Logout failed. Please try again.');
-    }
+  if (this.currentUser) {
+    // User is signed in
+    if (userInfo) userInfo.classList.remove('hidden');
+    if (authPrompt) authPrompt.classList.add('hidden');
+    if (userEmail) userEmail.textContent = this.currentUser.email;
+  } else {
+    // User is signed out
+    if (userInfo) userInfo.classList.add('hidden');
+    if (authPrompt) authPrompt.classList.remove('hidden');
   }
+}
 
-  async updateAuthStatus() {
-    const userInfo = document.getElementById('userInfo');
-    const authPrompt = document.getElementById('authPrompt');
-    const userEmail = document.getElementById('userEmail');
-
-    if (this.currentUser) {
-      // Show user info
-      userInfo?.classList.remove('hidden');
-      authPrompt?.classList.add('hidden');
-      if (userEmail) userEmail.textContent = this.currentUser.email;
-    } else {
-      // Show login prompt
-      userInfo?.classList.add('hidden');
-      authPrompt?.classList.remove('hidden');
-    }
-  }
-
-  // Utility methods
-  setButtonLoading(button, loading) {
-    if (!button) return;
-
-    const textSpan = button.querySelector('.btn-text');
-    const spinnerSpan = button.querySelector('.btn-spinner');
-
-    if (loading) {
-      button.disabled = true;
-      textSpan?.classList.add('hidden');
-      spinnerSpan?.classList.remove('hidden');
-    } else {
-      button.disabled = false;
-      textSpan?.classList.remove('hidden');
-      spinnerSpan?.classList.add('hidden');
-    }
-  }
 
   showAuthError(message) {
     this.clearAuthError();

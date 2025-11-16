@@ -1,53 +1,7 @@
-/* Authentication Modal Styles */
-
-.auth-status-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1500;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 8px 15px;
-  color: white;
-  font-size: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.user-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.user-greeting {
-  font-weight: 500;
-}
-
-.auth-prompt {
-  text-align: right;
-}
-
-.auth-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.auth-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-.logout-btn:hover {
-  background: rgba(255, 0, 0, 0.3);
-}
+/* ==============================================
+   UPDATED auth.css - WITH CONFLICTS REMOVED
+   Replace your entire auth.css with this
+   ============================================== */
 
 /* Auth Modal */
 .auth-modal {
@@ -66,6 +20,10 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.auth-modal.hidden {
+  display: none;
 }
 
 .auth-modal-backdrop {
@@ -88,6 +46,17 @@
   overflow: hidden;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
+}
+
+/* Fix invisible modal background */
+.auth-modal {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.auth-modal-container {
+  background: white !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
 }
 
 @keyframes slideUp {
@@ -442,4 +411,9 @@ body.dark-mode .auth-divider span {
 
 body.dark-mode .auth-switch {
   border-top-color: #555;
+}
+
+/* Modal z-index fix */
+#authModal {
+  z-index: 999999 !important;
 }

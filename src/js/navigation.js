@@ -1,94 +1,142 @@
-/**
- * ACCESS NATURE - NAVIGATION MODULE
- * Handles mobile hamburger menu and navigation interactions
- */
-
+// Mobile-first Navigation Handler
 class Navigation {
   constructor() {
     this.menuToggle = document.getElementById('menuToggle');
     this.navMenu = document.getElementById('navMenu');
-    this.navLinks = document.querySelectorAll('.nav-link');
-    
-    if (this.menuToggle && this.navMenu) {
-      this.init();
-    }
+    this.init();
   }
 
   init() {
-    // Menu toggle click
-    this.menuToggle.addEventListener('click', () => this.toggleMenu());
-    
-    // Close menu when clicking nav links
-    this.navLinks.forEach(link => {
-      link.addEventListener('click', () => this.closeMenu());
-    });
-    
-    // Close menu on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isMenuOpen()) {
-        this.closeMenu();
-      }
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', (e) => {
-      if (this.isMenuOpen() && 
-          !this.navMenu.contains(e.target) && 
-          !this.menuToggle.contains(e.target)) {
-        this.closeMenu();
-      }
-    });
-    
-    // Highlight active page
+    this.setupMenuToggle();
+    this.setupClickOutside();
     this.setActivePage();
+    this.setupAccessibility();
+  }
+
+  setupMenuToggle() {
+    if (!this.menuToggle || !this.navMenu) return;
+
+    this.menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.toggleMenu();
+    });
   }
 
   toggleMenu() {
-    const isOpen = this.isMenuOpen();
-    this.menuToggle.setAttribute('aria-expanded', !isOpen);
-    this.navMenu.classList.toggle('open');
+    const isExpanded = this.menuToggle.getAttribute('aria-expanded') === 'true';
     
-    // Prevent body scroll when menu open
-    document.body.style.overflow = isOpen ? '' : 'hidden';
+    this.menuToggle.setAttribute('aria-expanded', !isExpanded);
+    this.navMenu.classList.toggle('active');
+    this.menuToggle.classList.toggle('active');
+    
+    // Prevent body scroll when menu is open on mobile
+    if (!isExpanded) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
   }
 
   closeMenu() {
-    this.menuToggle.setAttribute('aria-expanded', 'false');
-    this.navMenu.classList.remove('open');
+    this.menuToggle?.setAttribute('aria-expanded', 'false');
+    this.navMenu?.classList.remove('active');
+    this.menuToggle?.classList.remove('active');
     document.body.style.overflow = '';
   }
 
-  isMenuOpen() {
-    return this.menuToggle.getAttribute('aria-expanded') === 'true';
+  setupClickOutside() {
+    document.addEventListener('click', (e) => {
+      const isClickInside = this.navMenu?.contains(e.target) || 
+                           this.menuToggle?.contains(e.target);
+      
+      if (!isClickInside && this.navMenu?.classList.contains('active')) {
+        this.closeMenu();
+      }
+    });
+
+    // Close menu when clicking nav links
+    this.navMenu?.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        this.closeMenu();
+      });
+    });
   }
 
   setActivePage() {
-    const currentPage = window.location.pathname;
-    this.navLinks.forEach(link => {
-      const linkPath = new URL(link.href).pathname;
-      if (linkPath === currentPage || 
-          (currentPage === '/' && linkPath === '/index.html')) {
-        link.classList.add('active');
+    const links = document.querySelectorAll('.nav-link');
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    
+    links.forEach(link => {
+      try {
+        // Skip if link doesn't have href
+        if (!link.hasAttribute('href')) {
+          return;
+        }
+        
+        const href = link.getAttribute('href');
+        
+        // Skip empty or null hrefs
+        if (!href || href === '#' || href === '') {
+          return;
+        }
+        
+        // Handle relative paths
+        const linkPage = href.split('/').pop().split('?')[0].split('#')[0];
+        
+        // Check if this link matches current page
+        if (linkPage === currentPage || 
+            (currentPage === '' && linkPage === 'index.html') ||
+            (currentPage === 'index.html' && linkPage === '')) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+      } catch (error) {
+        // Silently skip any problematic links
+        console.debug('Could not process link:', link);
       }
     });
+  }
+
+  setupAccessibility() {
+    // Handle escape key to close menu
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.navMenu?.classList.contains('active')) {
+        this.closeMenu();
+        this.menuToggle?.focus();
+      }
+    });
+
+    // Trap focus within menu when open
+    if (this.navMenu) {
+      this.navMenu.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          const focusableElements = this.navMenu.querySelectorAll(
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          );
+          
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+          
+          if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      });
+    }
   }
 }
 
 // Initialize navigation when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    window.navigation = new Navigation();
-  });
-} else {
-  window.navigation = new Navigation();
-}
-
-// Disable animations during window resize
-let resizeTimer;
-window.addEventListener('resize', () => {
-  document.body.classList.add('resize-animation-stopper');
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    document.body.classList.remove('resize-animation-stopper');
-  }, 400);
+document.addEventListener('DOMContentLoaded', () => {
+  new Navigation();
 });
+
+// Export for use in modules if needed
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Navigation;
+}

@@ -309,35 +309,95 @@ setupCloudButtonsWithRetry() {
 
   // UI Management Methods
   updateUI(user) {
-    const userInfo = document.getElementById('userInfo');
-    const authPrompt = document.getElementById('authPrompt');
-    const userEmail = document.getElementById('userEmail');
-    const cloudButtons = document.querySelectorAll('.cloud-save-btn, .cloud-load-btn');
+  const userInfo = document.getElementById('userInfo');
+  const authPrompt = document.getElementById('authPrompt');
+  const userEmail = document.getElementById('userEmail');
+  const cloudButtons = document.querySelectorAll('.cloud-save-btn, .cloud-load-btn');
+  const authNavBtn = document.getElementById('authNavBtn');
 
-    if (user) {
-      // Show user info
-      userInfo?.classList.remove('hidden');
-      authPrompt?.classList.add('hidden');
-      if (userEmail) userEmail.textContent = user.email;
+  if (user) {
+    // User is signed in
+    userInfo?.classList.remove('hidden');
+    authPrompt?.classList.add('hidden');
+    if (userEmail) userEmail.textContent = user.email;
 
-      // Enable cloud features
-      cloudButtons.forEach(btn => {
-        btn.disabled = false;
-        btn.style.opacity = '1';
+    // Enable cloud features
+    cloudButtons.forEach(btn => {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    });
+
+    // Update navigation button to "Sign Out"
+    if (authNavBtn) {
+      const icon = authNavBtn.querySelector('.nav-icon');
+      const label = authNavBtn.querySelector('.nav-label');
+      
+      if (icon) icon.textContent = '🚪';
+      if (label) label.textContent = 'Sign Out';
+      
+      // Remove old click handler
+      const newBtn = authNavBtn.cloneNode(true);
+      authNavBtn.parentNode.replaceChild(newBtn, authNavBtn);
+      
+      // Add sign out handler
+      newBtn.addEventListener('click', () => {
+        this.handleLogout();
       });
+    }
 
-    } else {
-      // Show login prompt
-      userInfo?.classList.add('hidden');
-      authPrompt?.classList.remove('hidden');
+  } else {
+    // User is signed out
+    userInfo?.classList.add('hidden');
+    authPrompt?.classList.remove('hidden');
 
-      // Disable cloud features
-      cloudButtons.forEach(btn => {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
+    // Disable cloud features
+    cloudButtons.forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+    });
+
+    // Update navigation button to "Sign In"
+    if (authNavBtn) {
+      const icon = authNavBtn.querySelector('.nav-icon');
+      const label = authNavBtn.querySelector('.nav-label');
+      
+      if (icon) icon.textContent = '👤';
+      if (label) label.textContent = 'Sign In';
+      
+      // Remove old click handler
+      const newBtn = authNavBtn.cloneNode(true);
+      authNavBtn.parentNode.replaceChild(newBtn, authNavBtn);
+      
+      // Add sign in handler
+      newBtn.addEventListener('click', () => {
+        this.showAuthModal();
       });
     }
   }
+}
+
+async handleLogout() {
+  const confirmLogout = confirm('Are you sure you want to sign out?');
+  
+  if (!confirmLogout) return;
+  
+  try {
+    await signOut(auth);
+    console.log('👋 User signed out successfully');
+    this.showSuccessMessage('Signed out successfully! 👋');
+    
+    // Close mobile menu if open
+    const navMenu = document.getElementById('navMenu');
+    if (navMenu?.classList.contains('active')) {
+      const menuToggle = document.getElementById('menuToggle');
+      menuToggle?.click();
+    }
+    
+  } catch (error) {
+    console.error('❌ Logout failed:', error);
+    this.showErrorMessage('Failed to sign out. Please try again.');
+  }
+}
 
   showAuthModal() {
     const modal = document.getElementById('authModal');
