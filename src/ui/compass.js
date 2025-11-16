@@ -92,8 +92,6 @@ export class CompassController {
   }
 
   handleOrientationChange(event) {
-    if (!this.isRotationEnabled) return;
-
     let heading = null;
 
     // Try different sources for compass heading
@@ -112,7 +110,9 @@ export class CompassController {
   }
 
   updateRotations() {
+    if (this.isRotationEnabled) {
     this.updateMapRotation();
+  }
     this.updateCompassRotation();
     this.updateHeadingDisplay();
   }
@@ -128,13 +128,22 @@ export class CompassController {
   }
 
   updateCompassRotation() {
-    const needleElement = document.getElementById('compass-needle');
-    if (!needleElement) return;
-
-    // The needle should point north, so rotate opposite to device heading
-    const needleRotation = -this.currentHeading;
-    needleElement.style.transform = `rotate(${needleRotation}deg)`;
+  const compassDisplay = document.getElementById('compass');
+  const needleElement = document.getElementById('compass-needle');
+  
+  if (!compassDisplay) return;
+  
+  // Rotate entire compass so North points north
+  compassDisplay.style.transform = `rotate(${-this.currentHeading}deg)`;
+  compassDisplay.style.transformOrigin = 'center center';
+  compassDisplay.style.transition = 'transform 0.3s ease-out';
+  
+  // Needle stays pointing up
+  if (needleElement) {
+    needleElement.style.transform = 'rotate(0deg)';
+    needleElement.style.transformOrigin = 'center center';
   }
+}
 
   updateHeadingDisplay() {
   const headingValue = document.getElementById('heading-value');
