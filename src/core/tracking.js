@@ -70,6 +70,11 @@ async start() {
 }
 
   this.updateTrackingButtons();
+
+  const recordingIndicator = document.getElementById('recording-indicator');
+if (recordingIndicator) {
+  recordingIndicator.classList.remove('hidden');
+}
   
   if (isResuming) {
     console.log('✅ GPS tracking resumed successfully');
@@ -122,6 +127,11 @@ stop() {
   this.appState.setTrackingState(false);
   this.updateTrackingButtons();
 
+  const recordingIndicator = document.getElementById('recording-indicator');
+if (recordingIndicator) {
+  recordingIndicator.classList.add('hidden');
+}
+
   // Prompt for save
   this.promptForSave();
 
@@ -171,6 +181,17 @@ stop() {
       }
     }
 
+    const recordingIndicator = document.getElementById('recording-indicator');
+  if (recordingIndicator) {
+    if (this.isPaused) {
+      recordingIndicator.style.background = 'rgba(255, 152, 0, 0.95)';
+      recordingIndicator.querySelector('.recording-text').textContent = 'PAUSED';
+    } else {
+      recordingIndicator.style.background = 'rgba(231, 76, 60, 0.95)';
+      recordingIndicator.querySelector('.recording-text').textContent = 'RECORDING';
+    }
+  }
+
     this.appState.setTrackingState(this.isTracking, this.isPaused);
     this.updateTrackingButtons();
     return true;
@@ -196,6 +217,14 @@ stop() {
       
       // Ignore micro-movements (less than 3 meters)
       if (distance < 0.003) return;
+
+      // Calculate bearing (direction of movement)
+  const bearing = this.calculateBearing(lastCoords, currentCoords);
+  
+  // Update arrow direction on map
+  if (this.dependencies.map) {
+    this.dependencies.map.updateMarkerDirection(bearing);
+  }
 
       // Update total distance
       const newTotal = this.appState.getTotalDistance() + distance;
@@ -251,6 +280,22 @@ stop() {
       this.stop(); // Stop tracking if permission denied
     }
   }
+
+  calculateBearing(coord1, coord2) {
+  const toRad = deg => deg * Math.PI / 180;
+  const toDeg = rad => rad * 180 / Math.PI;
+  
+  const lat1 = toRad(coord1.lat);
+  const lat2 = toRad(coord2.lat);
+  const deltaLng = toRad(coord2.lng - coord1.lng);
+  
+  const y = Math.sin(deltaLng) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - 
+            Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+  
+  const bearing = toDeg(Math.atan2(y, x));
+  return (bearing + 360) % 360; // Normalize to 0-360
+}
 
   updateTrackingButtons() {
     const startBtn = document.getElementById('startBtn');

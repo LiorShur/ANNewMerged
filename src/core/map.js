@@ -20,13 +20,72 @@ export class MapController {
       attribution: '© OpenStreetMap contributors'
     }).addTo(this.map);
 
-    this.marker = L.marker([32.0853, 34.7818])
-      .addTo(this.map)
-      .bindPopup("Current Location");
+    // this.marker = L.marker([32.0853, 34.7818])
+    //   .addTo(this.map)
+    //   .bindPopup("Current Location");
+
+    // Create custom arrow marker instead of default marker
+const arrowIcon = L.divIcon({
+  html: `
+    <div class="location-arrow">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <!-- Outer glow -->
+        <circle cx="20" cy="20" r="18" fill="rgba(66, 133, 244, 0.2)" />
+        <!-- Main circle -->
+        <circle cx="20" cy="20" r="12" fill="#4285F4" stroke="white" stroke-width="3" />
+        <!-- Direction arrow -->
+        <path d="M 20 8 L 25 18 L 20 15 L 15 18 Z" 
+              fill="white" 
+              id="direction-arrow" />
+      </svg>
+    </div>
+  `,
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+  className: 'location-marker-arrow'
+});
+
+this.marker = L.marker([32.0853, 34.7818], { icon: arrowIcon })
+  .addTo(this.map)
+  .bindPopup("Current Location");
+
+// Store arrow element reference for rotation
+this.arrowElement = null;
+setTimeout(() => {
+  this.arrowElement = document.querySelector('#direction-arrow');
+}, 100);
 
     await this.getCurrentLocation();
+    this.setupRecenterButton();
     console.log('✅ Map controller initialized');
   }
+
+  setupRecenterButton() {
+  const recenterBtn = document.getElementById('recenterBtn');
+  if (!recenterBtn) return;
+
+  recenterBtn.addEventListener('click', async () => {
+    console.log('🎯 Recentering map...');
+    
+    // Get current location
+    const location = await this.getCurrentLocation();
+    
+    if (location) {
+      // Animate to location
+      this.map.flyTo([location.lat, location.lng], 17, {
+        duration: 1.5
+      });
+      
+      // Pulse the button
+      recenterBtn.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        recenterBtn.style.transform = 'scale(1)';
+      }, 200);
+      
+      console.log('✅ Map recentered');
+    }
+  });
+}
 
   async getCurrentLocation() {
     if (!navigator.geolocation) return;
@@ -50,11 +109,66 @@ export class MapController {
     });
   }
 
+  setupRecenterButton() {
+  const recenterBtn = document.getElementById('recenterBtn');
+  if (!recenterBtn) {
+    console.warn('Recenter button not found');
+    return;
+  }
+
+  recenterBtn.addEventListener('click', async () => {
+    console.log('🎯 Recentering map...');
+    
+    // Get current location
+    const location = await this.getCurrentLocation();
+    
+    if (location) {
+      // Animate to location with smooth flyTo
+      this.map.flyTo([location.lat, location.lng], 17, {
+        duration: 1.5,
+        easeLinearity: 0.25
+      });
+      
+      // Visual feedback - pulse the button
+      recenterBtn.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        recenterBtn.style.transform = 'scale(1)';
+      }, 200);
+      
+      console.log('✅ Map recentered to:', location);
+    } else {
+      console.warn('⚠️ Could not get current location');
+      alert('Unable to get your current location. Please check GPS settings.');
+    }
+  });
+  
+  console.log('✅ Recenter button initialized');
+}
+
+
   updateMarkerPosition(coords) {
     if (!this.marker || !coords) return;
     this.marker.setLatLng([coords.lat, coords.lng]);
     this.map.panTo([coords.lat, coords.lng]);
   }
+
+  updateMarkerDirection(bearing) {
+  if (!this.arrowElement) {
+    this.arrowElement = document.querySelector('#direction-arrow');
+  }
+  
+  if (this.arrowElement) {
+    // Only update if bearing changed significantly (> 5 degrees)
+    if (Math.abs(bearing - this.lastBearing) > 5) {
+      this.arrowElement.style.transform = `rotate(${bearing}deg)`;
+      this.arrowElement.style.transformOrigin = '20px 14px'; // Center of arrow
+      this.arrowElement.style.transition = 'transform 0.3s ease-out';
+      this.lastBearing = bearing;
+      
+      console.log(`🧭 Arrow bearing: ${Math.round(bearing)}°`);
+    }
+  }
+}
 
   addRouteSegment(startCoords, endCoords) {
     if (!startCoords || !endCoords) return;

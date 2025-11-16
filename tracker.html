@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="src/css/accessibility.css">
   <link rel="stylesheet" href="src/css/themes.css">
   <link rel="stylesheet" href="src/css/auth.css">
+  <link rel="stylesheet" href="src/css/navigation-features.css">
 </head>
 <body>
 
@@ -190,11 +191,37 @@
     <div id="map"></div>
   </div>
 
-  <!-- EXISTING: Compass -->
-  <div id="compass">
-    <div id="compass-needle"></div>
-    <div id="compass-center"></div>
+  <!-- Enhanced Compass with Heading Display -->
+<div id="compass-container" class="compass-container">
+  <!-- Round Compass -->
+  <div id="compass" class="compass-display">
+    <div class="compass-ring">
+      <div class="compass-cardinal north">N</div>
+      <div class="compass-cardinal east">E</div>
+      <div class="compass-cardinal south">S</div>
+      <div class="compass-cardinal west">W</div>
+    </div>
+    <div id="compass-needle" class="compass-needle"></div>
+    <div class="compass-center"></div>
   </div>
+  
+  <!-- Heading Display -->
+  <div id="heading-display" class="heading-display">
+    <div class="heading-value" id="heading-value">0°</div>
+    <div class="heading-label">Heading</div>
+  </div>
+</div>
+
+<!-- Recenter Button -->
+<button id="recenterBtn" class="map-control-button recenter-btn" title="Center on my location">
+  <span class="recenter-icon">📍</span>
+</button>
+
+<!-- Recording Indicator (Pulsating) -->
+<div id="recording-indicator" class="recording-indicator hidden">
+  <span class="recording-dot"></span>
+  <span class="recording-text">RECORDING</span>
+</div>
 
   <!-- EXISTING: Top Control Bar -->
   <div class="top-bar">

@@ -10,6 +10,7 @@ import { MediaController } from './features/media.js';
 import { ExportController } from './features/export.js';
 import { FirebaseController } from './features/firebase.js';
 import { AuthController } from './features/auth.js';
+import { GestureRotationController } from './ui/gestureRotation.js';
 
 class AccessNatureApp {
   constructor() {
@@ -46,6 +47,17 @@ async initialize() {
 
     // Initialize all controllers
     await this.initializeControllers();
+
+    if (this.controllers.map && this.controllers.map.map) {
+  try {
+    const gestureRotation = new GestureRotationController(this.controllers.map.map);
+    gestureRotation.initialize();
+    this.controllers.gestureRotation = gestureRotation;
+    console.log('✅ Gesture rotation initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize gesture rotation:', error);
+  }
+}
 
     // Set up the main UI event listeners
     this.setupMainEventListeners();

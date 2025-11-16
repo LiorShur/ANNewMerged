@@ -1,0 +1,327 @@
+/* ==============================================
+   NAVIGATION FEATURES CSS
+   ============================================== */
+
+/* Compass Container */
+.compass-container {
+  position: fixed;
+  top: 120px;
+  right: 16px;
+  z-index: 2500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Round Compass Display */
+.compass-display {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px solid #4a7c59;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Compass Ring with Cardinals */
+.compass-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* Cardinal Directions */
+.compass-cardinal {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2c5530;
+}
+
+.compass-cardinal.north {
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #e74c3c;
+  font-size: 14px;
+}
+
+.compass-cardinal.east {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.compass-cardinal.south {
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.compass-cardinal.west {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Compass Needle */
+.compass-needle {
+  width: 4px;
+  height: 30px;
+  background: linear-gradient(to top, #666 0%, #666 50%, #e74c3c 50%, #e74c3c 100%);
+  transform-origin: center center;
+  position: absolute;
+  border-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease-out;
+  z-index: 2;
+}
+
+/* Compass Center Dot */
+.compass-center {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #333;
+  border-radius: 50%;
+  border: 2px solid white;
+  z-index: 3;
+}
+
+/* Heading Display */
+.heading-display {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  min-width: 80px;
+}
+
+.heading-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4CAF50;
+  font-family: 'SF Mono', Monaco, monospace;
+  line-height: 1;
+}
+
+.heading-label {
+  font-size: 10px;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+/* Recenter Button */
+.recenter-btn {
+  position: fixed;
+  bottom: 220px;
+  right: 16px;
+  width: 50px;
+  height: 50px;
+  background: white;
+  border: 2px solid #4a7c59;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 2000;
+}
+
+.recenter-btn:hover {
+  background: #f0f0f0;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.recenter-btn:active {
+  transform: scale(0.95);
+}
+
+.recenter-icon {
+  font-size: 24px;
+  animation: pulse-icon 2s infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Recording Indicator - Pulsating */
+.recording-indicator {
+  position: fixed;
+  top: 170px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(231, 76, 60, 0.95);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  z-index: 5000;
+  box-shadow: 0 2px 12px rgba(231, 76, 60, 0.5);
+  animation: pulse-recording 2s infinite;
+}
+
+.recording-indicator:not(.hidden) {
+  display: flex;
+}
+
+.recording-dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+.recording-text {
+  letter-spacing: 1px;
+}
+
+@keyframes pulse-recording {
+  0%, 100% {
+    box-shadow: 0 2px 12px rgba(231, 76, 60, 0.5);
+  }
+  50% {
+    box-shadow: 0 2px 20px rgba(231, 76, 60, 0.8), 
+                0 0 0 10px rgba(231, 76, 60, 0);
+  }
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .compass-container {
+    top: 130px;
+    right: 12px;
+  }
+
+  .compass-display {
+    width: 70px;
+    height: 70px;
+  }
+
+  .compass-needle {
+    height: 26px;
+  }
+
+  .heading-display {
+    padding: 6px 12px;
+    min-width: 70px;
+  }
+
+  .heading-value {
+    font-size: 18px;
+  }
+
+  .recenter-btn {
+    bottom: 200px;
+    right: 12px;
+    width: 46px;
+    height: 46px;
+  }
+
+  .recording-indicator {
+    top: 140px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+/* Location Arrow Marker */
+.location-marker-arrow {
+  background: transparent;
+  border: none;
+}
+
+.location-arrow {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  animation: pulse-location 2s infinite;
+}
+
+@keyframes pulse-location {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+#direction-arrow {
+  transition: transform 0.3s ease-out;
+}
+
+/* Permanent fix for compass visibility */
+body #compass,
+#compass {
+  display: flex !important;
+  width: 80px !important;
+  height: 80px !important;
+  min-width: 80px !important;
+  min-height: 80px !important;
+  background: white !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 3px solid #4a7c59 !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 99999 !important;
+  position: relative !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ensure internal elements are visible */
+#compass-needle,
+#compass .compass-needle {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+#compass .compass-cardinal,
+.compass-cardinal {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+#compass .compass-center,
+.compass-center {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+}

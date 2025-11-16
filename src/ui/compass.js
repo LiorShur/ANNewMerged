@@ -114,6 +114,7 @@ export class CompassController {
   updateRotations() {
     this.updateMapRotation();
     this.updateCompassRotation();
+    this.updateHeadingDisplay();
   }
 
   updateMapRotation() {
@@ -134,6 +135,25 @@ export class CompassController {
     const needleRotation = -this.currentHeading;
     needleElement.style.transform = `rotate(${needleRotation}deg)`;
   }
+
+  updateHeadingDisplay() {
+  const headingValue = document.getElementById('heading-value');
+  if (!headingValue) return;
+
+  // Round to nearest degree
+  const roundedHeading = Math.round(this.currentHeading);
+  headingValue.textContent = `${roundedHeading}°`;
+  
+  // Add cardinal direction
+  const cardinal = this.getCardinalDirection(roundedHeading);
+  headingValue.setAttribute('data-cardinal', cardinal);
+}
+
+getCardinalDirection(heading) {
+  const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+  const index = Math.round(((heading % 360) / 45)) % 8;
+  return directions[index];
+}
 
   updateToggleButton() {
     const toggleBtn = document.getElementById('toggleBtn');
@@ -177,5 +197,4 @@ export class CompassController {
     this.disableRotation();
     console.log('Compass controller cleaned up');
   }
-
 }
