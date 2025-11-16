@@ -100,7 +100,8 @@ export class CompassController {
       heading = event.webkitCompassHeading;
     } else if (event.alpha !== null && event.alpha !== undefined) {
       // Android Chrome and others
-      heading = event.alpha;
+      heading = (event.alpha - 90 + 360) % 360;  // Formula 4
+      console.log(`🧭 Corrected heading: ${heading.toFixed(1)}°`);
     }
 
     if (heading !== null) {
@@ -206,4 +207,5 @@ getCardinalDirection(heading) {
     this.disableRotation();
     console.log('Compass controller cleaned up');
   }
+
 }
