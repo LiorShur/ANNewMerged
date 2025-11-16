@@ -102,7 +102,7 @@ export class CompassController {
       heading = event.webkitCompassHeading;
     } else if (event.alpha !== null && event.alpha !== undefined) {
       // Android Chrome and others
-      heading = 360 - event.alpha;
+      heading = event.alpha;
     }
 
     if (heading !== null) {
@@ -177,4 +177,5 @@ export class CompassController {
     this.disableRotation();
     console.log('Compass controller cleaned up');
   }
+
 }
