@@ -239,6 +239,116 @@
     <button class="round-button" onclick="openAccessibilityForm()" title="Accessibility">♿</button>
   </div>
 
+  <!-- Compass Calibration Tester Button -->
+<button id="calibrationBtn" class="map-control-button" 
+        style="position: fixed; bottom: 160px; right: 16px; width: 50px; height: 50px; 
+               background: rgba(255, 152, 0, 0.9); border-radius: 50%; z-index: 2000; 
+               font-size: 20px; border: 2px solid white;"
+        title="Show Calibration">
+  🎯
+</button>
+
+<!-- Calibration Display Overlay -->
+<div id="calibrationOverlay" style="display: none;">
+  <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+              background: rgba(0,0,0,0.95); z-index: 10000; 
+              color: white; font-family: monospace; padding: 20px; 
+              overflow-y: auto;">
+    
+    <button onclick="document.getElementById('calibrationOverlay').style.display='none'" 
+            style="position: absolute; top: 10px; right: 10px; 
+                   background: #e74c3c; color: white; border: none; 
+                   padding: 10px 20px; border-radius: 5px; font-size: 16px;">
+      ✕ Close
+    </button>
+    
+    <h2 style="text-align: center; margin-top: 40px;">🧭 COMPASS CALIBRATION</h2>
+    
+    <div style="text-align: center; margin: 20px 0; padding: 15px; 
+                background: rgba(76, 175, 80, 0.2); border-radius: 10px;">
+      <div style="font-size: 14px; color: #4CAF50;">INSTRUCTIONS:</div>
+      <div style="font-size: 12px; margin-top: 10px;">
+        1. Open your phone's compass app<br>
+        2. Point phone NORTH (phone shows 0°)<br>
+        3. Find which formula below also shows 0°<br>
+        4. That's your correct formula!
+      </div>
+    </div>
+    
+    <div style="background: rgba(255,255,255,0.1); padding: 20px; 
+                border-radius: 10px; margin: 20px 0;">
+      <div style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+        📱 Phone's Compass: <span style="color: #4CAF50;">?°</span>
+      </div>
+      <div style="font-size: 14px; color: #999;">
+        (Check your phone's compass app)
+      </div>
+    </div>
+    
+    <div style="background: rgba(255,255,255,0.1); padding: 20px; 
+                border-radius: 10px; margin: 20px 0;">
+      <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #FFA500;">
+        RAW DATA:
+      </div>
+      <div id="rawAlpha" style="font-size: 24px; font-weight: bold; color: #FFA500;">
+        Alpha: --°
+      </div>
+    </div>
+    
+    <div style="background: rgba(255,255,255,0.1); padding: 20px; 
+                border-radius: 10px; margin: 20px 0;">
+      <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">
+        TEST ALL FORMULAS:
+      </div>
+      
+      <div id="formula1" style="padding: 15px; margin: 10px 0; 
+                                background: rgba(255,255,255,0.05); border-radius: 8px; 
+                                border-left: 4px solid #2196F3;">
+        <div style="font-size: 12px; color: #aaa;">Formula 1: Direct</div>
+        <div style="font-size: 28px; font-weight: bold; color: #2196F3;">--°</div>
+      </div>
+      
+      <div id="formula2" style="padding: 15px; margin: 10px 0; 
+                                background: rgba(255,255,255,0.05); border-radius: 8px; 
+                                border-left: 4px solid #9C27B0;">
+        <div style="font-size: 12px; color: #aaa;">Formula 2: Inverted</div>
+        <div style="font-size: 28px; font-weight: bold; color: #9C27B0;">--°</div>
+      </div>
+      
+      <div id="formula3" style="padding: 15px; margin: 10px 0; 
+                                background: rgba(255,255,255,0.05); border-radius: 8px; 
+                                border-left: 4px solid #4CAF50;">
+        <div style="font-size: 12px; color: #aaa;">Formula 3: Plus 90°</div>
+        <div style="font-size: 28px; font-weight: bold; color: #4CAF50;">--°</div>
+      </div>
+      
+      <div id="formula4" style="padding: 15px; margin: 10px 0; 
+                                background: rgba(255,255,255,0.05); border-radius: 8px; 
+                                border-left: 4px solid #FF9800;">
+        <div style="font-size: 12px; color: #aaa;">Formula 4: Minus 90°</div>
+        <div style="font-size: 28px; font-weight: bold; color: #FF9800;">--°</div>
+      </div>
+      
+      <div id="formula5" style="padding: 15px; margin: 10px 0; 
+                                background: rgba(255,255,255,0.05); border-radius: 8px; 
+                                border-left: 4px solid #F44336;">
+        <div style="font-size: 12px; color: #aaa;">Formula 5: Inverted -90°</div>
+        <div style="font-size: 28px; font-weight: bold; color: #F44336;">--°</div>
+      </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px; padding: 20px; 
+                background: rgba(76, 175, 80, 0.2); border-radius: 10px;">
+      <div style="font-size: 14px; color: #4CAF50; font-weight: bold;">
+        ✅ WHEN POINTING NORTH
+      </div>
+      <div style="font-size: 12px; margin-top: 10px;">
+        The formula that shows 0° (or 360°) is your correct formula!
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- EXISTING: Right Media Panel -->
   <div class="floating-right media-panel" id="mediaPanel">
     <button id="takePhotoBtn" class="round-button" title="Take Photo">📷</button>
@@ -352,6 +462,64 @@
       }
     });
   </script> -->
-
+<script>
+// Calibration button functionality
+document.addEventListener('DOMContentLoaded', () => {
+  const calibrationBtn = document.getElementById('calibrationBtn');
+  const calibrationOverlay = document.getElementById('calibrationOverlay');
+  
+  if (calibrationBtn && calibrationOverlay) {
+    calibrationBtn.addEventListener('click', () => {
+      calibrationOverlay.style.display = 'block';
+      
+      // Start orientation tracking for calibration
+      window.addEventListener('deviceorientation', updateCalibration);
+    });
+  }
+  
+  function updateCalibration(event) {
+    if (event.alpha === null) return;
+    
+    const alpha = event.alpha;
+    
+    // Update raw alpha
+    const rawAlpha = document.getElementById('rawAlpha');
+    if (rawAlpha) {
+      rawAlpha.innerHTML = `Alpha: ${alpha.toFixed(1)}°`;
+    }
+    
+    // Calculate all formulas
+    const formulas = [
+      alpha,                                    // Formula 1: Direct
+      360 - alpha,                              // Formula 2: Inverted
+      (alpha + 90) % 360,                       // Formula 3: Plus 90
+      (alpha - 90 + 360) % 360,                 // Formula 4: Minus 90
+      (360 - alpha - 90 + 360) % 360           // Formula 5: Inverted -90
+    ];
+    
+    // Update display
+    formulas.forEach((value, index) => {
+      const element = document.getElementById(`formula${index + 1}`);
+      if (element) {
+        const valueDiv = element.querySelector('div:last-child');
+        if (valueDiv) {
+          valueDiv.textContent = `${value.toFixed(1)}°`;
+          
+          // Highlight if close to North (0° or 360°)
+          if (value < 10 || value > 350) {
+            valueDiv.style.background = 'rgba(76, 175, 80, 0.3)';
+            valueDiv.style.padding = '10px';
+            valueDiv.style.borderRadius = '5px';
+          } else {
+            valueDiv.style.background = 'transparent';
+            valueDiv.style.padding = '0';
+          }
+        }
+      }
+    });
+  }
+});
+</script>
 </body>
+
 </html>
