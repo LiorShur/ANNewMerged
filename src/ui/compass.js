@@ -96,7 +96,6 @@ export class CompassController {
       heading = event.webkitCompassHeading;
       
     } else if (event.alpha !== null && event.alpha !== undefined) {
-      // Android Chrome and others
       heading = (event.alpha - 90 + 360) % 360;  // Formula 4
       console.log(`🧭 Corrected heading: ${heading.toFixed(1)}°`);
       console.log(`🧭 Raw alpha: ${event.alpha.toFixed(1)}° → Heading: ${heading.toFixed(1)}°`);
